@@ -15,6 +15,7 @@ namespace Minesweeper
         public Menu()
         {
             InitializeComponent();
+            this.BackColor = Color.FromArgb(200, 200, 200);
         }
 
 
