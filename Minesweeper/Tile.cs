@@ -22,6 +22,7 @@ namespace Minesweeper
         public bool Revealed
         {
             get { return _revealed;  }
+            set { _revealed = value; }
         }
         private int xPos;
         private int yPos;
@@ -67,6 +68,11 @@ namespace Minesweeper
 
         protected override void OnMouseDown(MouseEventArgs e)
         {
+            //If game is already won or lost, don't do anything
+            if(Game.GameWon || Game.GameLost)
+            {
+                return;
+            }
             base.OnMouseDown(e);
             switch(e.Button)
             {
@@ -82,7 +88,7 @@ namespace Minesweeper
         public void Reveal()
         {
             //Only reveal a tile if it isn't flagged
-            if (!_flagged)
+            if (!_flagged && !_revealed)
             {
                 _revealed = true;
                 //Auto-reveal surrounding tiles if there are no bombs surrounding this tile
@@ -95,7 +101,16 @@ namespace Minesweeper
                 //If tile is a bomb, lose the game
                 if(this.value == -1)
                 {
-                    //TODO: Implement losing the game
+                    UpdateDisplay();
+                    Game.LoseGame();
+                }
+            }
+
+            if(!_flagged && _revealed)
+            {
+                if(Game.GetSurroundingFlags(xPos, yPos) == this.value)
+                {
+                    Game.RevealSurroundingTiles(xPos, yPos);
                 }
             }
         }
@@ -104,9 +119,17 @@ namespace Minesweeper
         {
             _flagged = !_flagged;
             UpdateDisplay();
+            if(_flagged)
+            {
+                Game.NumFlagsPlaced++;
+            }
+            else
+            {
+                Game.NumFlagsPlaced--;
+            }
         }
 
-        private void UpdateDisplay()
+        public void UpdateDisplay()
         {
             if(_flagged)
             {
@@ -123,18 +146,15 @@ namespace Minesweeper
                 {
                     this.Text = "";
                 }
+                if(this.value == -1)
+                {
+                    this.Text = "X";
+                    this.BackColor = Color.Red;
+                }
             }
             else
             {
-                //If not flagged or revealed, show blank (currently showing bomb placement for testing purposes)
-                /*if (!this.bomb)
-                {
-                    this.Text = "";
-                }
-                else
-                {
-                    this.Text = "-1";
-                }*/
+                //This should only be hit when toggling a flag back off. Sets the text back to blank and puts the background color back to normal
                 this.Text = "";
                 this.BackColor = Color.LightGray;
             }
